@@ -1,0 +1,7 @@
+date,region,product,category,sales,quantity,unit_price
+2024-01-01,Nord,Laptop,Electronics,3000,3,1000
+2024-01-01,Sud,Mouse,Electronics,500,10,50
+2024-01-02,Nord,Phone,Electronics,1200,2,600
+2024-01-02,Est,Laptop,Electronics,4000,4,1000
+2024-01-03,Vest,Mouse,Electronics,650,13,50
+2024-01-03,Sud,Phone,Electronics,1800,3,600
