@@ -1,6 +1,363 @@
 
 # ReAct CSV + RAG Document Analyst Agent
 
+
+#homework 3
+
+# Homework 3 – Multi-Agent Data Reader with Typed State, Routing, Retry and RAG Integration
+
+## Overview
+
+Homework 3 extends the Data Reader and RAG system developed in Homework 2 into a multi-agent architecture inspired by LangGraph concepts.
+
+The solution introduces:
+
+* Typed shared state
+* Node-based execution
+* Supervisor agent
+* Routing logic
+* Retry and fallback mechanisms
+* Multi-agent collaboration
+* Integration with PostgreSQL + pgvector RAG search
+* Local LLM execution through Ollama
+
+The goal is to demonstrate how multiple specialized agents can collaborate using a shared state while maintaining a robust workflow capable of recovering from failures.
+
+---
+
+## Architecture
+
+The system is composed of four agents:
+
+### Supervisor Agent
+
+Responsibilities:
+
+* Receives the user request
+* Decides which agent should execute next
+* Routes the workflow using commands
+* Controls the execution flow
+
+### Retriever Agent
+
+Responsibilities:
+
+* Executes semantic search against PostgreSQL + pgvector
+* Uses the existing RAG Service from Homework 2
+* Retrieves the most relevant document chunks
+* Stores results in the shared state
+
+### Analyst Agent
+
+Responsibilities:
+
+* Reads retrieved document chunks
+* Produces the final answer
+* Updates the shared state with the response
+
+### Fallback Agent
+
+Responsibilities:
+
+* Handles unexpected failures
+* Implements retry logic
+* Redirects execution when possible
+* Returns controlled error messages if recovery fails
+
+---
+
+## Typed Shared State
+
+The entire workflow shares a strongly typed state object containing:
+
+* User question
+* Current agent
+* Conversation messages
+* Retrieved document chunks
+* Final answer
+* Error information
+* Retry count
+* Metadata
+
+Using a typed state guarantees consistency between all agents participating in the workflow.
+
+---
+
+## Technologies Used
+
+* Python 3.9+
+* Ollama
+* Llama 3.1
+* PostgreSQL
+* pgvector
+* SQLAlchemy
+* Sentence Transformers
+* Docker
+* Pydantic
+
+---
+
+## Project Structure
+
+```text
+react_csv_agent/
+
+├── project/
+│   ├── graph_agent/
+│   │   ├── state.py
+│   │   ├── commands.py
+│   │   ├── routing.py
+│   │   ├── nodes.py
+│   │   └── data_reader_graph.py
+│   │
+│   ├── rag/
+│   │   ├── rag_service.py
+│   │   ├── repository.py
+│   │   ├── embeddings.py
+│   │   ├── chunker.py
+│   │   └── loaders.py
+│   │
+│   ├── db/
+│   │   ├── database.py
+│   │   ├── transaction.py
+│   │   └── models.py
+│   │
+│   ├── llm/
+│   │   └── providers.py
+│   │
+│   └── tools/
+│
+├── project/data/documents/
+│
+├── docker-compose.yml
+├── create_tables.py
+├── ingest_documents.py
+├── homework3_demo.py
+├── main.py
+└── requirements.txt
+```
+
+---
+
+## Prerequisites
+
+### 1. Docker Installed
+
+Verify:
+
+```bash
+docker --version
+docker compose version
+```
+
+### 2. Virtual Environment Activated
+
+```bash
+source .venv/bin/activate
+```
+
+Verify:
+
+```bash
+which python3
+```
+
+Expected output:
+
+```text
+.../react_csv_agent/.venv/bin/python3
+```
+
+### 3. Ollama Container Running
+
+Verify:
+
+```bash
+docker ps
+```
+
+Expected container:
+
+```text
+local-ollama
+```
+
+### 4. PostgreSQL + pgvector Container Running
+
+Verify:
+
+```bash
+docker ps
+```
+
+Expected container:
+
+```text
+document_analyst_db
+```
+
+---
+
+## Initial Setup
+
+### Start Docker Services
+
+```bash
+docker compose up -d
+```
+
+Verify:
+
+```bash
+docker ps
+```
+
+You should see:
+
+```text
+document_analyst_db
+local-ollama
+```
+
+---
+
+### Create Database Tables
+
+Run once:
+
+```bash
+python3 create_tables.py
+```
+
+Expected:
+
+```text
+Database tables and pgvector index created successfully.
+```
+
+---
+
+### Ingest Documents
+
+Place documents inside:
+
+```text
+project/data/documents/
+```
+
+Then run:
+
+```bash
+python3 ingest_documents.py
+```
+
+Expected:
+
+```text
+Found X document(s)
+SUCCESS | id=...
+Ingestion completed.
+```
+
+The process:
+
+1. Loads documents
+2. Splits documents into chunks
+3. Creates embeddings
+4. Stores chunks in PostgreSQL
+5. Creates vector representations for semantic search
+
+---
+
+## Running Homework 3
+
+Execute:
+
+```bash
+python3 homework3_demo.py
+```
+
+Example question:
+
+```text
+Search in my documents: what is the termination notice?
+```
+
+Workflow:
+
+1. Supervisor receives request
+2. Supervisor routes to Retriever
+3. Retriever performs semantic search
+4. Retrieved chunks are stored in state
+5. Analyst generates final answer
+6. Answer returned to user
+
+---
+
+## Example Execution
+
+Input:
+
+```text
+Search in my documents: what is the termination notice?
+```
+
+Retrieved document:
+
+```text
+Contractul se poate rezilia cu preaviz de 30 de zile.
+```
+
+Output:
+
+```text
+The contract states that it can be terminated with a 30-day notice.
+```
+
+---
+
+## Error Handling
+
+The solution implements a fallback strategy:
+
+1. Detect execution failure
+2. Increment retry counter
+3. Retry retrieval once
+4. If failure persists:
+
+   * Generate controlled error
+   * End workflow gracefully
+
+This prevents workflow crashes and demonstrates resilient orchestration.
+
+---
+
+## Learning Objectives Demonstrated
+
+This homework demonstrates:
+
+* Typed State Management
+* Multi-Agent Architecture
+* Shared State Communication
+* Supervisor Pattern
+* Routing Logic
+* Node-Based Execution
+* Retry Mechanisms
+* Fallback Handling
+* RAG Integration
+* Semantic Search
+* Vector Databases
+* PostgreSQL + pgvector
+* Local LLM Execution
+* AI Workflow Orchestration
+
+---
+
+## Conclusion
+
+Homework 3 transforms the single-agent RAG Data Reader into a robust multi-agent system. The implementation demonstrates how specialized agents can collaborate through a typed shared state, while routing, retry mechanisms, and fallback handling provide a reliable foundation for more advanced orchestration workflows in future assignments.
+
+
 ## Project Overview
 
 This project implements a local AI agent using the ReAct (Reasoning + Acting) pattern, local LLM inference through Ollama, CSV analysis tools, and a Retrieval Augmented Generation (RAG) pipeline using PostgreSQL and pgvector.
