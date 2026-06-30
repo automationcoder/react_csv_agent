@@ -9,3 +9,38 @@ __pycache__/
 pgdata/
 .cache/
 sentence_transformers_cache/
+# Python virtual environments
+.venv/
+.venv-mcp/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Git
+.git/
+
+# local secrets
+.env
+
+# generated artifacts
+*.zip
+*.joblib
+
+# IDE
+.vscode/
+.idea/
+.venv-mcp/
+
+.venv/
+.venv-mcp/
+__pycache__/
+*.pyc
+*.zip
+*.joblib
+.DS_Store
+.env
